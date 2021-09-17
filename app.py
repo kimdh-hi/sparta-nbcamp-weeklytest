@@ -13,14 +13,13 @@ def home():
 @app.route('/codes')
 def codes():
    group = request.args.get('group')
-   res = db.codes.find({'group':group})
-
+   res = db.codes.find({'group':group}, {'_id':False})
    print(res)
 
-   return jsonify({'result':codes})
+   return ""
 
 @app.route('/base/codes')
-def codes():
+def basecodes():
    codes = db.codes.find({}, {'_id':False,'code':False,'name':False})
    codes = codes.distinct('group')
 

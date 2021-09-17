@@ -12,7 +12,6 @@ def home():
 @app.route('/stock', methods = ['POST'])
 def save_info():
 
-
    return jsonify()
 
 @app.route('/codes')

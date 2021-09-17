@@ -9,21 +9,25 @@ db = client.dbStock
 def home():
    return render_template('index.html')
 
+@app.route('/stock', methods = ['POST'])
+def save_info():
+    info = request.json
+
+   return jsonify(stocks)
 
 @app.route('/codes')
 def codes():
    group = request.args.get('group')
-   res = db.codes.find({'group':group}, {'_id':False})
-   print(res)
+   res = list(db.codes.find({'group':group}, {'_id':False}))
 
-   return ""
+   return jsonify(res)
 
 @app.route('/base/codes')
 def basecodes():
    codes = db.codes.find({}, {'_id':False,'code':False,'name':False})
    codes = codes.distinct('group')
 
-   return jsonify({'codes':codes})
+   return jsonify(codes)
 
 
 

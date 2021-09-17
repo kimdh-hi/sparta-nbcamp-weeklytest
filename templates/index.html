@@ -69,9 +69,18 @@
                 $('#select-box').append(tmp_html)
             }
 
-            function recommend() {
 
-            }
+            // 프론트 코드
+            // 생략은 코드가 생략되었다는...
+            $.ajax({
+                type: "POST",
+                url: '/stock',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({"market": "market-1", "sector": "sector-1", "tag": "tag-1"}),
+                success: function (response) {
+                }
+            })
+
         </script>
 
     </head>

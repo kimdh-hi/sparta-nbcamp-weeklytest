@@ -11,9 +11,9 @@ def home():
 
 @app.route('/stock', methods = ['POST'])
 def save_info():
-    info = request.json
 
-   return jsonify(stocks)
+
+   return jsonify()
 
 @app.route('/codes')
 def codes():

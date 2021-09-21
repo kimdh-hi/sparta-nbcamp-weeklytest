@@ -21,7 +21,7 @@
         <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
 
 
-        <title>스파르타코딩클럽 | 나홀로 메모장</title>
+        <title>스파르타코딩클럽 | 타임어택 구현과제 1</title>
 
         <!-- style -->
         <style type="text/css">
@@ -48,39 +48,121 @@
             }
         </style>
         <script>
-            let s1 = ""
-            let s2 = ""
-            function open1() {
-                $('#select-box').empty()
+            let code = []
+            let g_input = []
 
-                let tmp_html=`<div class="form-check">
-                                  <input class="form-check-input" type="radio" name="flexRadioDisabled" id="cospi">
-                                  <label class="form-check-label" for="flexRadioDisabled">
-                                    코스피
-                                  </label>
-                                </div>
-                                <div class="form-check">
-                                  <input class="form-check-input" type="radio" name="flexRadioDisabled" id="cosdac" >
-                                  <label class="form-check-label" for="flexRadioCheckedDisabled">
-                                    코스닥
-                                  </label>
-                                </div>
-                        <button onclick="recommend()" type="button" class="btn btn-success">다음</button>`
-                $('#select-box').append(tmp_html)
-            }
-
-
-            // 프론트 코드
-            // 생략은 코드가 생략되었다는...
-            $.ajax({
-                type: "POST",
-                url: '/stock',
-                contentType: "application/json; charset=utf-8",
-                data: JSON.stringify({"market": "market-1", "sector": "sector-1", "tag": "tag-1"}),
-                success: function (response) {
-                }
+            $(document).ready(function() {
+                g_input = []
+                code = []
+                getCode()
             })
 
+            function getCode() {
+                $.ajax({
+                    type:"GET",
+                    url:"/base/codes",
+                    success: function(res) {
+                        for (let i=0;i<res.length;i++) {
+                            code.push(res[i])
+                        }
+                    }
+                })
+            }
+
+            function getGroup() {
+                $('#select-market').empty()
+                $('#btn-start').css({"display":"none"})
+
+                $.ajax({
+                    type: "GET",
+                    url: `/codes?group=${code[0]}`,
+                    success: function(res) {
+                        for (let i=0;i<res.length;i++) {
+                            let tmp_html = `<p><input class="form-check-input" type="radio" name="groupSelect" id="m-select-${res[i].code}" value="${res[i].code}">
+                                        <label class="form-check-label" for="m-select-${res[i].code}">${res[i].name}</label></p>`
+                            $('#select-market').append(tmp_html)
+                        }
+                        $('#select-market').append('<p><button type="button" onclick="getSector()" class="btn btn-success">다음</button></p>')
+                    }
+                })
+            }
+
+            function getSector() {
+                g_input.push($("input[name='groupSelect']:checked").val())
+
+                $('#select-market').css({"display":"none"})
+                $('#select-sector').css({"display":''})
+                $('#select-sector').empty()
+
+                $.ajax({
+                    type: "GET",
+                    url: `/codes?group=${code[1]}`,
+                    success: function(res) {
+                        for(let i=0;i<res.length;i++) {
+                            let tmp_html = `<p><input class="form-check-input" type="radio" name="groupSector" id=s-select-${res[i].code} value="${res[i].code}">
+                                          <label class="form-check-label" for=s-select-${res[i].code}>${res[i].name}</label></p>`
+                            $('#select-sector').append(tmp_html)
+                        }
+                        $('#select-sector').append(`<p><button type="button" onclick="getTag()" class="btn btn-success">다음</button></p>`)
+                    }
+                })
+            }
+
+            function getTag() {
+                g_input.push($("input[name='groupSector']:checked").val())
+
+                $('#select-sector').css({"display":"none"})
+                $('#select-tag').css({"display":""})
+                $('#select-tag').empty()
+
+                $.ajax({
+                    type: "GET",
+                    url: `/codes?group=${code[2]}`,
+                    success: function(res) {
+                        for (let i=0;i<res.length;i++) {
+                            let tmp_html = `<p><input class="form-check-input" type="radio" name="groupTag" id="t-select-${res[i].code}" value="${res[i].code}">
+                                        <label class="form-check-label" for="t-select-${res[i].code}">${res[i].name}</label></p>`
+                            $('#select-tag').append(tmp_html)
+                        }
+                        $('#select-tag').append(`<p><button type="button" onclick="getStockInfo()" class="btn btn-success">다음</button></p>`)
+                    }
+                })
+            }
+
+            function getStockInfo() {
+                g_input.push($("input[name='groupTag']:checked").val())
+
+                $('#select-tag').css({"display":"none"})
+                $('#select-stock-info').empty()
+                $('#select-stock-info').css({"display":""})
+
+                $.ajax({
+                  type: "POST",
+                  url: '/stock',
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify({"market":`${g_input[0]}`,"sector":`${g_input[1]}`,"tag":`${g_input[2]}`}),
+                  success: function (res) {
+                    for (let i=0;i<res.length;i++) {
+                        console.log('getStockInfo : ' + res[i].code)
+                        strCode = res[i].code.toString();
+
+                        let tmp_html = `<p>${res[i].name} <button type="button" onclick="callStockApi(strCode)" class="btn btn-info">정보</button></p>`
+                        $('#select-stock-info').append(tmp_html)
+                    }
+                  }
+                })
+            }
+
+            function callStockApi(code) {
+                console.log(code)
+                $.ajax({
+                    type: "GET",
+                    url: `/stock?code=${code}`,
+                    success: function(res) {
+                        alert(`주가: ${res.price} \n 시총: ${res.amount} \n PER: ${res.per}`)
+                    }
+                })
+            }
         </script>
 
     </head>
@@ -91,28 +173,30 @@
                 <h1 class="display-4">주식 종목 추천!!</h1>
                 <p class="lead">원하시는 종목을 추천합니다.</p>
                 <hr class="my-4">
-                <div id="select-box">
-                    <p class="lead">
-                        <button onclick="open1()" id="btn-post-box" type="button" class="btn btn-primary">추천시작
-                        </button>
-                    </p>
+
+                <p class="lead" id="btn-start">
+                    <button onclick="getGroup()" id="btn-post-box" type="button" class="btn btn-primary">추천시작</button>
+                </p>
+
+                <div id="select-market">
+
                 </div>
-            </div>
-            <div id="post-box" class="form-post" style="display:none">
-                <div>
-                    <div class="form-group">
-                        <label for="post-url">아티클 URL</label>
-                        <input id="post-url" class="form-control" placeholder="">
-                    </div>
-                    <div class="form-group">
-                        <label for="post-comment">간단 코멘트</label>
-                        <textarea id="post-comment" class="form-control" rows="2"></textarea>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="postArticle()">기사저장</button>
+
+                <div id="select-sector" style="display: none">
+
                 </div>
+
+                <div id="select-tag" style="display: none">
+
+                </div>
+
+                <div id="select-stock-info" style="display: none">
+
+                </div>
+
             </div>
-            <div id="cards-box" class="card-columns"></div>
         </div>
+
     </body>
 
 </html>

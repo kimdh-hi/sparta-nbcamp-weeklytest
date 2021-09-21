@@ -7,9 +7,11 @@ db = client.dbStock
 codes = [
     {"group": "market", "code": "market-1", "name": "코스피"},
     {"group": "market", "code": "market-2", "name": "코스닥"},
+
     {"group": "sector", "code": "sector-1", "name": "반도체와반도체장비"},
     {"group": "sector", "code": "sector-2", "name": "양방향미디어와서비스"},
     {"group": "sector", "code": "sector-3", "name": "자동차"},
+
     {"group": "tag", "code": "tag-1", "name": "메모리"},
     {"group": "tag", "code": "tag-2", "name": "플랫폼"},
     {"group": "tag", "code": "tag-4", "name": "전기차"},

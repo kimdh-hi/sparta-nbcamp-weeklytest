@@ -17,6 +17,7 @@ def create():
     title = request.form['title']
     comment = request.form['comment']
     date = datetime.datetime.now()
+    print(date)
     doc = {
         "title":title,
         "comment":comment,

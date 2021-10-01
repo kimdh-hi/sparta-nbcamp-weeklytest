@@ -1,0 +1,155 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+
+    <title>title</title>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: "Stylish", sans-serif;
+        }
+
+        .wrap {
+            width: 900px;
+            margin: auto;
+        }
+
+        .comment {
+            color: blue;
+            font-weight: bold;
+        }
+
+        #post-box {
+            width: 500px;
+            margin: 20px auto;
+            padding: 50px;
+            border: black solid;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            showTable();
+        });
+
+        function toggleButton() {
+            if ($('#post-box').css("display") == "none") {
+                $('#post-box').show();
+            } else {
+                $('#post-box').hide();
+            }
+        }
+
+        function showTable() {
+            $('#memo-body').empty()
+            $.ajax({
+                type: "GET",
+                url: "/api/memo",
+                success: function (res) {
+                    for (let i = 0; i < res.length; i++) {
+                        let tmp_html = `<tr>
+                                          <td>${i+1}</td>
+                                          <td>${res[i].title}</td>
+                                          <td>${res[i].date}</td>
+                                          <td>
+                                            <button onclick="deleteMemo('${res[i].title}')" type="button" class="btn btn-danger">삭제</button>
+                                          </td>
+                                        </tr>`
+                        $('#memo-body').append(tmp_html)
+                    }
+                }
+            })
+        }
+
+        function postMemo() {
+            let title = $('#post-name').val()
+            let comment = $('#post-comment').val()
+            $.ajax({
+                type: "POST",
+                data: {title:title, comment:comment},
+                url: "/api/memo",
+                success: function(res) {
+                    alert(res['msg'])
+                    toggleButton()
+                    showTable();
+                }
+            })
+        }
+
+        function deleteMemo(title) {
+            $.ajax({
+                type: "DELETE",
+                data: {title: title},
+                url: "/api/memo",
+                success: function(res) {
+                    alert(res['msg'])
+                    showTable();
+                }
+            })
+        }
+
+    </script>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div class="jumbotron">
+        <h1 class="display-4">나홀로 링크 메모장!</h1>
+        <p class="lead">
+            <button onclick="toggleButton()" id="btn-post-box" type="button" class="btn btn-primary">포스팅 박스 열기
+            </button>
+        </p>
+    </div>
+
+    <div id="post-box" class="form-post" style="display:none">
+        <div>
+            <div class="form-group">
+                <label for="post-name">이름</label>
+                <input id="post-name" class="form-control" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="post-comment">간단한 내용</label>
+                <textarea id="post-comment" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="postMemo()">기사저장</button>
+        </div>
+    </div>
+    <table id="memo-tbl" class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">타이틀</th>
+            <th scope="col">날짜</th>
+            <th scope="col">삭제</th>
+        </tr>
+        </thead>
+        <tbody id="memo-body">
+
+        </tbody>
+    </table>
+
+</div>
+</body>
+
+</html>

@@ -67,18 +67,22 @@
                 url: "/api/memo",
                 success: function (res) {
                     for (let i = 0; i < res.length; i++) {
-                        let tmp_html = `<tr>
-                                          <td>${i+1}</td>
-                                          <td>${res[i].title}</td>
-                                          <td>${res[i].date}</td>
-                                          <td>
-                                            <button onclick="deleteMemo('${res[i].title}')" type="button" class="btn btn-danger">삭제</button>
-                                          </td>
-                                        </tr>`
-                        $('#memo-body').append(tmp_html)
+                        addPostHtml(res[i], i+1)
                     }
                 }
             })
+        }
+
+        function addPostHtml(post, num)  {
+                let tmp_html = `<tr>
+                      <td>${num}</td>
+                      <td>${post.title}</td>
+                      <td>${post.date}</td>
+                      <td>
+                        <button onclick="deleteMemo('${post.title}')" type="button" class="btn btn-danger">삭제</button>
+                      </td>
+                    </tr>`
+            $('#memo-body').append(tmp_html)
         }
 
         function postMemo() {

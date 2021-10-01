@@ -35,7 +35,7 @@ def save_info():
    tag = info['tag']
 
    code = list(db.stocks.find({"market":market, "sector":sector, "tag":tag}, {'_id':0, "market":0, "sector":0, "tag":0}))
-
+   print(code)
    return jsonify(code)
 
 @app.route('/stock', methods=['GET'])
@@ -56,10 +56,21 @@ def get_info():
     price = soup.select_one(
         '#content > div.section.trade_compare > table > tbody > tr:nth-child(1) > td:nth-child(2)').text
 
-    print(amount, per, price)
 
     return jsonify({'amount': amount, 'per': per, 'price': price})
 
+
+@app.route("/stock/bookmark", methods=["POST"])
+def save_bookmark():
+    receive = request.json
+    db.bookmarks.insert_one({"name":receive['name'], "code":receive['code']})
+    return jsonify({"success": True})
+
+@app.route("/stock/bookmark", methods=["GET"])
+def get_bookmarks():
+    bookmarks = list(db.bookmarks.find({},{'_id':False}))
+
+    return jsonify(bookmarks)
 
 if __name__ == '__main__':
    app.run('0.0.0.0',port=5000,debug=True)

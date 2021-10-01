@@ -1,0 +1,73 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/index.css">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="../static/index.js"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+
+    <title>스파르타코딩클럽 | 타임어택 구현과제 1</title>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div>
+        <span onclick="toggle(1)">추천</span>&nbsp;&nbsp;
+        <span onclick="toggle(2)">즐겨찾기</span>
+    </div>
+
+    <div class="jumbotron" id="recommend-box">
+        <h1 class="display-4">주식 종목 추천!!</h1>
+        <p class="lead">원하시는 종목을 추천합니다.</p>
+        <hr class="my-4">
+
+        <p class="lead" id="btn-start">
+            <button onclick="getGroup()" id="btn-post-box" type="button" class="btn btn-primary">추천시작</button>
+        </p>
+
+        <div id="select-market">
+
+        </div>
+
+        <div id="select-sector" style="display: none">
+
+        </div>
+
+        <div id="select-tag" style="display: none">
+
+        </div>
+
+        <div id="select-stock-info" style="display: none">
+
+        </div>
+
+    </div>
+    <div class="jumbotron" id="bookmark-box" style="display:none;">
+        <h1 class="display-4">즐겨찾기한 항목</h1>
+        <p class="lead">즐겨찾기한 종목을 보여드려요 ~</p>
+        <hr class="my-4">
+
+    </div>
+</div>
+
+</body>
+
+</html>

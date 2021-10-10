@@ -50,13 +50,15 @@ def read():
 @app.route('/api/memo', methods=['GET'])
 def read_details():
     memo_id = request.args.get('id')
+    print(memo_id)
     memo = db.memos.find_one({'memo_id':memo_id}, {'_id':False})
 
     click = memo['click']
     new_click = click+1
     db.memos.update({'memo_id':memo_id}, {'$set':{'click':new_click}})
 
-    memos = list(db.memos.find({}, {'_id':0}))
+    memos = db.memos.find_one({'memo_id':memo_id}, {'_id':0})
+
     return jsonify(memos)
 
 @app.route('/api/memo/edit', methods=['GET'])

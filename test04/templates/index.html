@@ -1,0 +1,266 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+
+    <title>title</title>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: "Stylish", sans-serif;
+        }
+
+        .wrap {
+            width: 900px;
+            margin: auto;
+        }
+
+        .comment {
+            color: blue;
+            font-weight: bold;
+        }
+
+        #post-box {
+            width: 500px;
+            margin: 20px auto;
+            padding: 50px;
+            border: black solid;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        let condition = 'desc'
+        let offset
+        let limit
+
+        $(document).ready(function () {
+
+            showTable();
+
+        });
+
+        function toggleButton() {
+            if ($('#post-box').css("display") == "none") {
+                $('#post-box').show();
+            } else {
+                $('#post-box').hide();
+            }
+        }
+
+        function showTable(param_offset, param_limit) {
+            offset = param_offset
+            limit = param_limit
+            $('#memo-body').empty()
+            if (offset == null){
+                offset = 0
+            }
+            if (limit == null) {
+                limit = 5
+            }
+            $.ajax({
+                type: "GET",
+                url: `/api/memos?sort=${condition}&offset=${offset}&limit=${limit}`,
+                success: function (res) {
+                    for (let i = 0; i < res.length; i++) {
+                        addPostHtml(res[i], res.length - i)
+                    }
+                }
+            })
+        }
+
+        function addPostHtml(post, num) {
+            let tmp_html = `<tr>
+                      <td>${num}</td>
+                      <td><a onclick="detailMemo('${post.memo_id}')" data-toggle="modal">${post.title}</a></td>
+                      <td>${post.date}</td>
+
+                        <td>${post.click}</td>
+                      <td>
+                        <button onclick="deleteMemo('${post.memo_id}')" type="button" class="btn btn-danger">삭제</button>
+                        </td>
+                        <td>
+                        <button onclick="showEditForm('${post.memo_id}')" type="button" class="btn btn-primary">수정</button>
+                        </td>
+                    </tr>`
+            $('#memo-body').append(tmp_html)
+        }
+
+        function postMemo() {
+            let title = $('#post-name').val()
+            let comment = $('#post-comment').val()
+            let id = $('#post-id').val()
+            $.ajax({
+                type: "POST",
+                data: {id: id, title: title, comment: comment},
+                url: "/api/memo",
+                success: function (res) {
+                    alert(res['msg'])
+                    $('#post-name').val('')
+                    $('#post-comment').val('')
+                    window.location.reload()
+                }
+            })
+        }
+
+        function deleteMemo(id) {
+            $.ajax({
+                type: "DELETE",
+                url: `/api/memo`,
+                data: {id: id},
+                success: function (res) {
+                    alert('삭제!!')
+                    showTable()
+                }
+            })
+        }
+
+        function detailMemo(id) {
+            $.ajax({
+                type: "GET",
+                url: `/api/memo?id=${id}`,
+                success: function (res) {
+                    console.log(res)
+                    $('#modal-title').html(res.title);
+                    $('#modal-content').html(res.comment);
+                    $('#info-modal').modal('show');
+                }
+            })
+        }
+
+        function showEditForm(id) {
+            $.ajax({
+                type: "GET",
+                url: `/api/memo/edit?id=${id}`,
+                success: function (res) {
+                    $('#post-id').val(res.memo_id)
+                    title = res.title
+                    comment = res.comment
+                    id = res.memo_id
+                    $('#post-name').val(title)
+                    $('#post-comment').val(comment)
+                    $('#post-box').show();
+
+                }
+            })
+        }
+
+        // 정렬조건
+        function sort() {
+            if (condition == "desc") {
+                condition = "asc"
+                $('#sort-icon').text('⬆️')
+            } else {
+                condition = "desc"
+                $('#sort-icon').text('⬇️️')
+            }
+            showTable()
+        }
+
+        function select_page_limit() {
+            let get_limit = $('#select_page_limit').val();
+            showTable(offset, get_limit)
+        }
+
+    </script>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div class="jumbotron">
+        <h1 class="display-4">나홀로 링크 메모장!</h1>
+        <p class="lead">
+            <button onclick="toggleButton()" id="btn-post-box" type="button" class="btn btn-primary">포스팅 박스 열기
+            </button>
+        </p>
+    </div>
+
+    <div id="post-box" class="form-post" style="display:none">
+        <div>
+            <div class="form-group">
+                <input type="hidden" id="post-id">
+                <label for="post-name">이름</label>
+                <input id="post-name" class="form-control" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="post-comment">간단한 내용</label>
+                <textarea id="post-comment" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="postMemo()">기사저장</button>
+        </div>
+    </div>
+
+    <select id="select_page_limit" onchange="select_page_limit()">
+        <option value="5">5</option>
+        <option value="10">10</option>
+    </select>
+
+    <table id="memo-tbl" class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">타이틀</th>
+            <th scope="col">날짜</th>
+            <th scope="col" onclick="sort()">조회수<span id="sort-icon">⬇</span>️</th>
+            <th scope="col">삭제</th>
+            <th scope="col">수정</th>
+        </tr>
+        </thead>
+        <tbody id="memo-body">
+
+        </tbody>
+    </table>
+
+    <nav aria-label="...">
+        <ul class="pagination">
+            {% for i in range(1, paging_button_num) %}
+                <li class="page-item"><a class="page-link" onclick="showTable({{i-1}})">{{ i }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+</div>
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-content">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

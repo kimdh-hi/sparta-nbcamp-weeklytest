@@ -17,13 +17,14 @@ def create():
     title = request.form['title']
     comment = request.form['comment']
     date = datetime.datetime.now()
-    print(date)
+
     doc = {
         "title":title,
         "comment":comment,
         "date":date
     }
-    db.memos.insert_one(doc)
+    x = db.memos.insert_one(doc)
+    print(x)
     return jsonify({'msg': '저장완료'})
 
 @app.route('/api/memo', methods=['GET'])

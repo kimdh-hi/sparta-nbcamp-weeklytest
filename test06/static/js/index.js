@@ -9,8 +9,8 @@ $(document).ready(function () {
         getMemos(1)
     })
 
-    console.log(sessionStorage.getItem('id'))
-    if(sessionStorage.getItem('id') == null) {
+    console.log($.cookie('mytoken'))
+    if($.cookie('mytoken') == undefined) {
         $('#signin_btn').show()
         $('#signup_btn').show()
         $('#logout_btn').hide()
@@ -198,7 +198,6 @@ function signup() {
         url: "/signup",
         data: doc,
         success: function(res) {
-            console.log(res)
             alert(res.msg)
             window.location.reload()
         }
@@ -220,15 +219,21 @@ function signin() {
         data: doc,
         success: function(res) {
             alert(res.msg)
-            if (res.result == 'success') {
-                sessionStorage.setItem('id', signin_id)
+            if (res['result'] == 'success') {
+                console.log($.cookie('token'))
+                $.cookie('mytoken', res['token'], {path: '/'})
+                window.location.reload()
+            } else {
+                alert(res['msg'])
             }
-            window.location.reload()
+
         }
     })
 }
 
 function logout() {
-    sessionStorage.clear();
+    $.removeCookie('mytoken', {path: '/'});
     window.location.reload()
 }
+
+

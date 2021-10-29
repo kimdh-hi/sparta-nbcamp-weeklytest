@@ -1,11 +1,13 @@
 import os
 from pymongo import MongoClient
-from flask import Flask, render_template, jsonify, request, redirect, session
-import datetime
+from flask import Flask, render_template, jsonify, request, redirect, session, make_response
+from datetime import datetime, timedelta
+import jwt
+
 
 app = Flask(__name__)
 
-app.secret_key = "secret"
+SECRET = "secret"
 
 client = MongoClient('localhost', 27017)
 db = client.test3
@@ -18,16 +20,19 @@ def index():
 @app.route('/api/memo', methods=['POST'])
 def create():
 
-    session_id = session.get('id')
+    token = request.cookies.get('mytoken')
+    id = ''
+    if token is not None:
+        id = jwt.decode(token, SECRET, algorithms="HS256")['id']
 
-    if session_id is not None:
-        writer_id = session_id
+    if id is not '':
+        writer_id = id
     else:
         writer_id = '비회원'
 
     title = request.form['title']
     comment = request.form['comment']
-    date = datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S')
+    date = datetime.now().strftime('%Y.%m.%d %H:%M:%S')
 
     total_count = db.memos.count()
 
@@ -146,9 +151,13 @@ def signin():
     if find_user is None:
         return jsonify({"result": 'fail', "msg": "인증에 실패했습니다."})
 
-    session['id'] = id
+    payload = {
+        "id": id,
+        "exp": datetime.utcnow() + timedelta(seconds=60 * 60 * 1)
+    }
+    token = jwt.encode(payload, SECRET, algorithm='HS256')
 
-    return jsonify({"result": "success", "msg": "로그인에 성공했습니다."})
+    return jsonify({"result": "success", "msg": "로그인에 성공했습니다.", "token": token})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)

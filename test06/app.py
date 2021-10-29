@@ -1,14 +1,15 @@
 import os
 from pymongo import MongoClient
-from flask import Flask, render_template, jsonify, request, redirect
+from flask import Flask, render_template, jsonify, request, redirect, session
 import datetime
 
 app = Flask(__name__)
 
+app.secret_key = "secret"
+
 client = MongoClient('localhost', 27017)
 db = client.test3
 
-pypy = os.environ['PYPY']
 
 @app.route('/', methods=['GET'])
 def index():
@@ -16,6 +17,13 @@ def index():
 
 @app.route('/api/memo', methods=['POST'])
 def create():
+
+    session_id = session.get('id')
+
+    if session_id is not None:
+        writer_id = session_id
+    else:
+        writer_id = '비회원'
 
     title = request.form['title']
     comment = request.form['comment']
@@ -33,7 +41,8 @@ def create():
         "title":title,
         "comment":comment,
         "date":date,
-        "click":0
+        "click":0,
+        'writer_id': writer_id
     }
 
     x = db.memos.insert_one(doc)
@@ -103,6 +112,43 @@ def delete():
     db.memos.delete_one({'memo_id':id})
     return jsonify({'msg': '삭제완료'})
 
+
+#========= 회원가입 / 로그인 ============#
+
+@app.route('/signup', methods=['POST'])
+def signup():
+
+    print('회원가입')
+
+    id = request.form['id']
+    pw = request.form['pw']
+
+    print(id, pw)
+
+    find_user = db.members.find_one({'id': id})
+    if find_user is not None:
+        return jsonify({"result": 'fail', "msg":"이미 존재하는 ID 입니다."})
+    else:
+        doc = {
+            'id': id,
+            'password': pw
+        }
+        db.members.insert_one(doc)
+    return jsonify({"result": "success", "msg": "회원가입에 성공했습니다."})
+
+@app.route('/signin', methods=['POST'])
+def signin():
+    id = request.form['id']
+    pw = request.form['pw']
+
+    find_user = db.members.find_one({'id': id, 'password': pw}, {'_id': False})
+
+    if find_user is None:
+        return jsonify({"result": 'fail', "msg": "인증에 실패했습니다."})
+
+    session['id'] = id
+
+    return jsonify({"result": "success", "msg": "로그인에 성공했습니다."})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)

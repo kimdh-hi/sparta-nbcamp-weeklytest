@@ -1,0 +1,203 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="/static/images/favicon.png">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+
+    <title>title</title>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: "Stylish", sans-serif;
+        }
+
+        .wrap {
+            width: 900px;
+            margin: auto;
+        }
+
+        .comment {
+            color: blue;
+            font-weight: bold;
+        }
+
+        #post-box {
+            width: 500px;
+            margin: 20px auto;
+            padding: 50px;
+            border: black solid;
+            border-radius: 5px;
+        }
+    </style>
+
+    <script src="/static/js/index.js"></script>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div class="jumbotron">
+        <h1 class="display-4">나홀로 링크 메모장!</h1>
+        <p class="lead">
+            <button onclick="toggleButton()" id="btn-post-box" type="button" class="btn btn-primary">포스팅 박스 열기
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="open_signin_modal()" id="signin_btn">로그인</button>
+            <button type="button" class="btn btn-success" onclick="open_signup_modal()" id="signup_btn">회원가입</button>
+            <button type="button" class="btn btn-danger" onclick="logout()" style="display: none" id="logout_btn">로그아웃</button>
+        </p>
+    </div>
+
+    <div id="post-box" class="form-post" style="display:none">
+        <div>
+            <div class="form-group">
+                <input type="hidden" id="post-id">
+                <label for="post-title">제목</label>
+                <input id="post-title" class="form-control" placeholder="">
+            </div>
+            <div class="form-group">
+                <label for="post-comment">간단한 내용</label>
+                <textarea id="post-comment" class="form-control" rows="2"></textarea>
+            </div>
+            <input type="hidden" id="post-id">
+            <button id="save-button" type="button" class="btn btn-primary" onclick="postMemo()">메모저장</button>
+            <button id="edit-button" type="button" class="btn btn-primary" onclick="editMemo()" style="display: none">
+                메모수정
+            </button>
+        </div>
+    </div>
+
+    <select id="select_page_limit">
+        <option value="5">5</option>
+        <option value="10">10</option>
+    </select>
+
+    <table id="memo-table" class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">타이틀</th>
+            <th scope="col">글쓴이</th>
+            <th scope="col">날짜</th>
+            <th scope="col" onclick="sort()">조회수<span id="sort-icon">⬇</span>️</th>
+            <th scope="col">삭제</th>
+            <th scope="col">수정</th>
+        </tr>
+        </thead>
+
+        <tbody id="memo-body">
+
+        </tbody>
+
+    </table>
+
+    <nav aria-label="...">
+        <ul class="pagination pagination-lg" id="pagination-buttons">
+
+        </ul>
+    </nav>
+</div>
+
+
+<!-- 상세정보 모달 -->
+<div class="modal fade" id="articleModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-content">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 회원가입 모달 -->
+<div class="modal fade" id="signupModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">회원가입</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <div class="mb-3">
+                    <label for="signup-id" class="form-label">아이디</label>
+                    <input type="text" class="form-control" id="signup-id">
+                </div>
+                <div class="mb-3">
+                    <label for="signup-pw" class="form-label">비밀번호</label>
+                    <input type="password" class="form-control" id="signup-pw">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="signup()">회원가입</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 로그인 모달 -->
+<div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">로그인</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <div class="mb-3">
+                    <label for="signin-id" class="form-label">아이디</label>
+                    <input type="text" class="form-control" id="signin-id">
+                </div>
+                <div class="mb-3">
+                    <label for="signin-pw" class="form-label">비밀번호</label>
+                    <input type="password" class="form-control" id="signin-pw">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="signin()">로그인</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

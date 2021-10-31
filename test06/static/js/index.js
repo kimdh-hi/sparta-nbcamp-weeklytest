@@ -1,30 +1,52 @@
 order = "asc"
 limit = 5
+token = null
+type = "all"
 
 $(document).ready(function () {
+
+    if (sessionStorage.getItem('token') != null) {
+        token = sessionStorage.getItem('token')
+        $('#signin_btn').hide()
+        $('#signup_btn').hide()
+        $('#logout_btn').show()
+
+    } else {
+        $('#signin_btn').show()
+        $('#signup_btn').show()
+        $('#logout_btn').hide()
+    }
+
     getMemos(1)
 
-    $("#select_page_limit").change(function() {
+    $("#select_page_limit").change(function () {
         limit = $(this).val();
         getMemos(1)
     })
 
-    console.log($.cookie('mytoken'))
-    if($.cookie('mytoken') == undefined) {
-        $('#signin_btn').show()
-        $('#signup_btn').show()
-        $('#logout_btn').hide()
-    } else {
-        $('#signin_btn').hide()
-        $('#signup_btn').hide()
-        $('#logout_btn').show()
-    }
+    $.ajaxSetup({
+        error: function (jqXHR, exception) {
+            switch (jqXHR.status) {
+                case 401:
+                    alert('인증 에러!!');
+                    break;
+                case 423:
+                    alert('중복된 id!!');
+                    break;
+            }
+        },
+        beforeSend: function (xhr) {
+            if (sessionStorage.getItem('token') != null) {
+                xhr.setRequestHeader('Authorization', sessionStorage.getItem('token'));
+            }
+        }
+    });
 })
 
 function toggleButton() {
     if ($("#post-box").css("display") == "none") {
-            $('#edit-button').hide()
-            $('#save-button').show()
+        $('#edit-button').hide()
+        $('#save-button').show()
         $("#post-box").show()
         $("#btn-post-box").text("포스트 박스 닫기")
     } else {
@@ -56,11 +78,11 @@ function getMemos(current_page) {
     $('#memo-body').empty()
     $.ajax({
         type: "GET",
-        url: `/api/memos?order=${order}&page=${current_page}&limit=${limit}`,
+        url: `/api/memos?order=${order}&page=${current_page}&limit=${limit}&type=${type}`,
         success: function (res) {
             memos = res['memos']
             for (let i = 0; i < memos.length; i++) {
-                memo_number = (i+1) + limit * (current_page-1)
+                memo_number = (i + 1) + limit * (current_page - 1)
                 let tmp_html = `<tr>
                                   <th scope="row">${memo_number}</th>
                                   <td><a onclick="getMemo('${memos[i]['memo_id']}')">${memos[i]['title']}</a></td>
@@ -88,11 +110,11 @@ function makePagingButtons(paging_info) {
     total_page = paging_info['total_page']
     current_page = paging_info['page']
     tmp_html = ``
-    for (let i=0;i<total_page;i++) {
-        if (current_page == i+1) {
-            tmp_html = `<li class="page-item active"><a class="page-link" onclick="getMemos('${i+1}')">${i+1}</a></li>`
+    for (let i = 0; i < total_page; i++) {
+        if (current_page == i + 1) {
+            tmp_html = `<li class="page-item active"><a class="page-link" onclick="getMemos('${i + 1}')">${i + 1}</a></li>`
         } else {
-            tmp_html = `<li class="page-item"><a class="page-link" onclick="getMemos('${i+1}')">${i+1}</a></li>`
+            tmp_html = `<li class="page-item"><a class="page-link" onclick="getMemos('${i + 1}')">${i + 1}</a></li>`
         }
 
         $('#pagination-buttons').append(tmp_html)
@@ -104,12 +126,12 @@ function getMemo(memo_id) {
         type: "GET",
         url: `/api/memo/${memo_id}`,
         success: function (res) {
-            console.log(res)
             let title = res['memo']['title']
             let comment = res['memo']['comment']
             $('#modal-title').html(title);
             $('#modal-content').html(comment);
             $('#articleModal').modal('show');
+                        getMemos(1)
         }
     })
 }
@@ -144,7 +166,7 @@ function editMemo() {
         type: "PUT",
         url: `/api/memo`,
         data: {"id": memo_id, "title": title, "comment": comment},
-        success: function(res) {
+        success: function (res) {
             alert(res['msg'])
             window.location.reload()
         }
@@ -155,7 +177,7 @@ function delete_memo(memo_id) {
     $.ajax({
         type: "DELETE",
         url: `/api/memo?id=${memo_id}`,
-        success: function(res) {
+        success: function (res) {
             alert(res['msg'])
             window.location.reload();
         }
@@ -175,7 +197,7 @@ function sort() {
     getMemos(1)
 }
 
-function open_signin_modal(){
+function open_signin_modal() {
     $('#signinModal').modal('show');
 }
 
@@ -197,7 +219,7 @@ function signup() {
         type: "POST",
         url: "/signup",
         data: doc,
-        success: function(res) {
+        success: function (res) {
             alert(res.msg)
             window.location.reload()
         }
@@ -217,11 +239,10 @@ function signin() {
         type: "POST",
         url: "/signin",
         data: doc,
-        success: function(res) {
+        success: function (res) {
             alert(res.msg)
             if (res['result'] == 'success') {
-                console.log($.cookie('token'))
-                $.cookie('mytoken', res['token'], {path: '/'})
+                sessionStorage.setItem('token', res['token'])
                 window.location.reload()
             } else {
                 alert(res['msg'])
@@ -232,8 +253,17 @@ function signin() {
 }
 
 function logout() {
-    $.removeCookie('mytoken', {path: '/'});
+    sessionStorage.clear()
     window.location.reload()
+}
+
+function set_type(type_param) {
+    if (type_param == "my" && token == null) return false
+
+    if (type_param == type) return false
+
+    type = type_param
+    getMemos(1)
 }
 
 

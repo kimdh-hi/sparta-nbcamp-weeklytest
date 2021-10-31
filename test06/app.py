@@ -1,6 +1,6 @@
 import os
 from pymongo import MongoClient
-from flask import Flask, render_template, jsonify, request, redirect, session, make_response
+from flask import Flask, render_template, jsonify, request, Response
 from datetime import datetime, timedelta
 import jwt
 
@@ -20,12 +20,16 @@ def index():
 @app.route('/api/memo', methods=['POST'])
 def create():
 
-    token = request.cookies.get('mytoken')
+    token = request.headers.get("Authorization")
+    print(token)
+
     id = ''
     if token is not None:
-        id = jwt.decode(token, SECRET, algorithms="HS256")['id']
-
-    if id is not '':
+        try:
+            id = jwt.decode(token, SECRET, algorithms="HS256")['id']
+        except jwt.InvalidTokenError:
+            return Response(status=401)
+    if id != '':
         writer_id = id
     else:
         writer_id = '비회원'
@@ -59,15 +63,30 @@ def read():
     order = request.args.get('order')
     limit = int(request.args.get('limit'))
     page = int(request.args.get('page'))
+    type = request.args.get('type')
+
+    print(type)
 
     total_count = db.memos.find({}).count()
     total_page = (total_count // limit) + (1 if total_count % limit >= 1 else 0)
     skip = (page-1) * limit
 
-    if order == 'asc':
-        memos = list(db.memos.find({}, {'_id': False}).sort([('click', 1)]).skip(skip).limit(limit))
+    if type == 'my':
+        token = request.headers.get('Authorization')
+        try:
+            id = jwt.decode(token, SECRET, algorithms="HS256")['id']
+        except jwt.InvalidTokenError:
+            return Response(status=401)
+
+        if order == 'asc':
+            memos = list(db.memos.find({'writer_id': id}, {'_id': False}).sort([('click', 1)]).skip(skip).limit(limit))
+        else:
+            memos = list(db.memos.find({'writer_id': id}, {'_id': False}).sort([('click', -1)]).skip(skip).limit(limit))
     else:
-        memos = list(db.memos.find({}, {'_id': False}).sort([('click', -1)]).skip(skip).limit(limit))
+        if order == 'asc':
+            memos = list(db.memos.find({}, {'_id': False}).sort([('click', 1)]).skip(skip).limit(limit))
+        else:
+            memos = list(db.memos.find({}, {'_id': False}).sort([('click', -1)]).skip(skip).limit(limit))
 
     paging = {
         'total_count': total_count,

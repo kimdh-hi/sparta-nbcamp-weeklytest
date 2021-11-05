@@ -3,9 +3,12 @@ from pymongo import MongoClient
 from flask import Flask, render_template, jsonify, request, Response
 from datetime import datetime, timedelta
 import jwt
+from flask_socketio import SocketIO
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
 
 SECRET = "secret"
 

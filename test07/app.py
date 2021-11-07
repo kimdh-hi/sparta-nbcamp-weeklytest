@@ -3,11 +3,11 @@ from pymongo import MongoClient
 from flask import Flask, render_template, jsonify, request, Response
 from datetime import datetime, timedelta
 import jwt
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = 'secret'
 socketio = SocketIO(app)
 
 SECRET = "secret"
@@ -24,7 +24,6 @@ def index():
 def create():
 
     token = request.headers.get("Authorization")
-    print(token)
 
     id = ''
     if token is not None:
@@ -68,8 +67,6 @@ def read():
     page = int(request.args.get('page'))
     type = request.args.get('type')
 
-    print(type)
-
     total_count = db.memos.find({}).count()
     total_page = (total_count // limit) + (1 if total_count % limit >= 1 else 0)
     skip = (page-1) * limit
@@ -109,8 +106,6 @@ def read_details(id):
     memo = db.memos.find_one({'memo_id': id}, {'_id': 0})
 
     comments = list(db.comments.find({'memo_id': id}, {'_id': False}))
-    print(comments)
-
     return jsonify({"memo": memo, "comments": comments})
 
 @app.route('/api/memo', methods=['GET'])
@@ -126,8 +121,6 @@ def update():
     memo_id = int(request.form['id'])
     title = request.form['title']
     comment = request.form['comment']
-
-    print(memo_id, title, comment)
 
     db.memos.update_one(
         {'memo_id': memo_id},
@@ -149,12 +142,8 @@ def delete():
 @app.route('/signup', methods=['POST'])
 def signup():
 
-    print('회원가입')
-
     id = request.form['id']
     pw = request.form['pw']
-
-    print(id, pw)
 
     find_user = db.members.find_one({'id': id})
     if find_user is not None:
@@ -183,7 +172,7 @@ def signin():
     }
     token = jwt.encode(payload, SECRET, algorithm='HS256')
 
-    return jsonify({"result": "success", "msg": "로그인에 성공했습니다.", "token": token})
+    return jsonify({"result": "success", "msg": "로그인에 성공했습니다.", "token": token, 'id': id})
 
 @app.route('/comment', methods=['POST'])
 def add_comment():
@@ -197,7 +186,21 @@ def add_comment():
 
     db.comments.insert_one(doc)
 
+    find_memo = db.memos.find_one({'memo_id': memo_id}, {'_id': False})
+    socketio.emit(find_memo['writer_id'], "ok")
+
     return jsonify({"result": "success", "msg": "댓글달기 완료"})
 
+@app.route('/token-decode', methods=["GET"])
+def decode_token():
+    token = request.args.get('token')
+    try:
+        id = jwt.decode(token, SECRET, algorithms="HS256")['id']
+        print('decoded-token-id: ', id)
+    except jwt.InvalidTokenError:
+        return Response(status=401)
+    return jsonify({"result": "success", "id": id})
+
 if __name__ == '__main__':
-    app.run('0.0.0.0', port=5000, debug=True)
+    # app.run('0.0.0.0', port=5000, debug=True)
+    socketio.run(app, debug=True)

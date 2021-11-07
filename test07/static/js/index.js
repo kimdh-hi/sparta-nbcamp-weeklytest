@@ -8,6 +8,7 @@ $(document).ready(function () {
 
     if (sessionStorage.getItem('token') != null) {
         token = sessionStorage.getItem('token')
+        decodeToken(token)
         $('#signin_btn').hide()
         $('#signup_btn').hide()
         $('#logout_btn').show()
@@ -259,6 +260,7 @@ function signin() {
         success: function (res) {
             alert(res.msg)
             if (res['result'] == 'success') {
+                connectSocket(res['id'])
                 sessionStorage.setItem('token', res['token'])
                 window.location.reload()
             } else {
@@ -304,4 +306,23 @@ function saveComment() {
     })
 }
 
+function connectSocket(id) {
+    console.log('connect socket: ', id)
+    var socket = io.connect('http://localhost:5000');
+    socket.on(id, function () {
+        alert("작성하신 글에 댓글이 달렸어요!!");
+    })
+}
+
+function decodeToken(token) {
+    let decoded_id;
+    $.ajax({
+        type: "GET",
+        url: "/token-decode",
+        data: {"token": token},
+        success: function(res) {
+           connectSocket(res['id'])
+        }
+    })
+}
 

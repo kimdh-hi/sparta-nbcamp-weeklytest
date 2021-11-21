@@ -42,7 +42,7 @@ function getMemos() {
 
             for (let i = 0; i < res.length; i++) {
                 let tmp_html = `<td>${i + 1}</td>
-                            <td><a onclick="getMemo('${res[i].id}')">${res[i].title}</a></td>
+                            <td><a href=/view?id=${res[i].id}>${res[i].title}</a></td>
                             <td>${res[i].commentsCount}</td>
                             <td>${res[i].createdAt}</td>`
                 $('#list-post').append(tmp_html);
@@ -51,36 +51,4 @@ function getMemos() {
     })
 }
 
-function getMemo(id) {
-    $('#wrap').load('../view.html')
 
-    $.ajax({
-        type: "GET",
-        url: "/memo",
-        contentType: "application/json;charset=utf-8",
-        data: {"id": id},
-        success: function (res) {
-            $('#title').val(res['title'])
-            $('#content').val(res['content'])
-            let comments = res['comments']
-            $('#comment-list').empty();
-            for (let i = 0; i < comments.length; i++) {
-                $('#comment-list').append(`<li>${comments.content}</li>`)
-            }
-        }
-    })
-}
-
-function setArticleComment() {
-    let comment = $('#comment').val()
-
-    $.ajax({
-        type: "POST",
-        url: "/comment",
-        contentType: "application/json;charset=utf8",
-        success: function(res) {
-            alert('댓글작성 완료')
-            getMemo()
-        }
-    })
-}

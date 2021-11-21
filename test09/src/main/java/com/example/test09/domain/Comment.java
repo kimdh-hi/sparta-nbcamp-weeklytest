@@ -21,7 +21,7 @@ public class Comment extends Timestamped{
     private String content;
 
     @JoinColumn(name = "memo_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Memo memo;
 
     public void setMemo(Memo memo) {

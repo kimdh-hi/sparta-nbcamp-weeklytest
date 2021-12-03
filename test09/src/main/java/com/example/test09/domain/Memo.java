@@ -24,8 +24,18 @@ public class Memo extends Timestamped{
     private String  content;
     private Integer commentsCount;
 
-    @OneToMany(mappedBy = "memo")
+    @OneToMany(mappedBy = "memo", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "memo", cascade = CascadeType.ALL)
+    private List<Tag> tags = new ArrayList<>();
+
+    public void addTag(Tag... tag) {
+        for (Tag t : tag) {
+            this.getTags().add(t);
+            t.setMemo(this);
+        }
+    }
 
     public void addComment(Comment comment) {
         ++this.commentsCount;

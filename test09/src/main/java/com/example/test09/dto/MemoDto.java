@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,4 +18,6 @@ public class MemoDto {
     private String content;
     private Integer commentsCount;
     private LocalDateTime createdAt;
+
+    private List<TagDto> tags = new ArrayList<>();
 }
